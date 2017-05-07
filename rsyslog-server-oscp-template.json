@@ -1,0 +1,122 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "rsyslog",
+        "annotations" : {
+            "description": "A simple rsyslog server on CentOS 7 that logs to stdout"
+        }
+    },
+    "objects": [
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${RSYSLOG_SERVICE_NAME}",
+                "labels": {
+                    "logger": "${RSYSLOG_SERVICE_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Rolling",
+                    "rollingParams": {
+                        "maxUnavailable": "25%",
+                        "maxSurge": 0,
+                        "updatePercent": -25
+                    },
+                    "resources": {}
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "logger": "${RSYSLOG_SERVICE_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "logger": "${RSYSLOG_SERVICE_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "rsyslog",
+                                "image": "docker.io/philipgough/rsyslog",
+                                "ports": [
+                                    {
+                                        "name": "rsyslog-udp",
+                                        "containerPort": 1514,
+                                        "protocol": "UDP"
+                                    },
+                                    {
+                                        "name": "rsyslog-tcp",
+                                        "containerPort": 1514,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "imagePullPolicy": "Always"
+                            }
+                        ],
+                        "securityContext": {}
+                    }
+                }
+            },
+            "status": {}
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "annotations": {
+                    "description": "Exposes and load balances the application pods"
+                },
+                "name": "${RSYSLOG_SERVICE_NAME}",
+                "labels": {
+                    "logger": "${RSYSLOG_SERVICE_NAME}"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "logger-tcp",
+                        "protocol": "TCP",
+                        "port": "${RSYSLOG_SERVICE_PORT}",
+                        "targetPort": 1514
+                    },
+                    {
+                        "name": "logger-udp",
+                        "protocol": "UDP",
+                        "port": "${RSYSLOG_SERVICE_PORT}",
+                        "targetPort": 1514
+                    }
+                ],
+                "selector": {
+                    "logger": "${RSYSLOG_SERVICE_NAME}"
+                }
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ],
+    "parameters": [
+        {
+          "name": "RSYSLOG_SERVICE_NAME",
+          "value": "rsyslog",
+          "description": "The Service name to use for rsyslog",
+          "required": true
+        },
+        {
+          "name": "RSYSLOG_SERVICE_PORT",
+          "value": "514",
+          "description": "The port exposed by the service",
+          "required": true
+        }
+  ]
+}
