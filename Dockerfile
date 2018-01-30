@@ -12,8 +12,6 @@ RUN  yum -y install rsyslog && \
 
 COPY rsyslog.conf /etc/rsyslog.conf
 
-USER DEFAULT
-
 EXPOSE 1514
 
 CMD ["sh", "-c", "/usr/sbin/rsyslogd -i ${PID_DIR}/pid -n"]
