@@ -5,6 +5,12 @@ A lightweight, Centos 7 based [rsyslog](http://www.rsyslog.com) image which logs
 
 #### Deploying on OpenShift
 
+Note: In later versions of OpenShift (3.11+) you can deploy the router with logging enabled in a separate container within the router Pod.
+
+To do so, run `oc adm router eg-router --extended-logging` and tail the logs from the syslog container.
+
+-----------------
+
 The following example shows how this image can be used to debug and get access logs for the HAProxy router running on OpenShift.
 
 Pull down this repository, or copy the contents of `rsyslog-server-oscp-template.json` locally. This tempate will create a DeploymentConfig and Service for the `rsyslog-container` Pod. The default service port is 514.
