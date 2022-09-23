@@ -1,18 +1,17 @@
-FROM centos:7
+FROM redhat/ubi8-minimal:8.6
 
-ENV PID_DIR /tmp/pidDir
+RUN  microdnf -y install rsyslog && \
+	 microdnf clean all && \
+     rm -rf /var/cache/yum
 
-USER root
-
-RUN  yum -y install rsyslog && \
-	 yum clean all && \
-	 echo "" > /etc/rsyslog.d/listen.conf && \
-	 mkdir -p ${PID_DIR} && \
-	 chmod 777 ${PID_DIR}
+RUN chgrp -R 0 /var/lib/rsyslog && \
+    chmod -R g+rwX /var/lib/rsyslog && \
+    chgrp -R 0 /var/log && \
+    chmod -R g+rwX /var/log
 
 COPY rsyslog.conf /etc/rsyslog.conf
 
 EXPOSE 1514
-
-CMD ["sh", "-c", "/usr/sbin/rsyslogd -i ${PID_DIR}/pid -n"]
+USER 1001
+CMD ["sh", "-c", "/usr/sbin/rsyslogd -i /tmp/rsyslog.pid -n -f /etc/rsyslog.conf"]
 
